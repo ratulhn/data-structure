@@ -1,0 +1,58 @@
+class NumArray {
+public:
+    int n;
+    vector<int>seg;
+    void segBuild(int i, int l, int r, vector<int>&nums) {
+        if(l==r) {
+            seg[i]=nums[l];
+            return;
+        }
+        int mid = l+(r-l)/2;
+        segBuild(2*i+1,l,mid,nums);
+        segBuild(2*i+2,mid+1,r,nums);
+
+        seg[i]=seg[2*i+1]+seg[2*i+2];
+    }
+    void segUpdate(int i,int l,int r,int index,int val) {
+        if(l==r) {
+            seg[i]=val;return;
+        }
+        int mid = l+(r-l)/2;
+        if(index<=mid) {
+            segUpdate(2*i+1,l,mid,index,val);
+        } else {
+            segUpdate(2*i+2,mid+1,r,index,val);
+        }
+        seg[i]=seg[2*i+1]+seg[2*i+2];
+        
+    }
+    int query(int left,int right,int i,int l,int r) {
+        if(r<left||l>right) return 0;
+        if(l>=left&&r<=right) return seg[i];
+
+        int mid = l+(r-l)/2;
+        return query(left,right,2*i+1,l,mid)+query(left,right,2*i+2,mid+1,r);
+       
+
+    }
+    NumArray(vector<int>& nums) {
+        n=nums.size();
+        seg.resize(4*n);
+        segBuild(0,0,n-1,nums);
+    }
+    
+    void update(int index, int val) {
+        segUpdate(0,0,n-1,index,val);
+    }
+    
+    int sumRange(int left, int right) {
+        return query(left,right,0,0,n-1);
+    }
+};
+
+/**
+ * Your NumArray object will be instantiated and called as such:
+ * NumArray* obj = new NumArray(nums);
+ * obj->update(index,val);
+ * int param_2 = obj->sumRange(left,right);
+ */
