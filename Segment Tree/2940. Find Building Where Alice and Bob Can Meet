@@ -1,0 +1,75 @@
+class Solution {
+public:
+    vector<int>seg;
+
+    void segBuild(int i, int l, int r, vector<int>& heights) {
+        if(l==r) {
+            seg[i]=l;
+            return;
+        }
+        int mid = l+(r-l)/2;
+        segBuild(2*i+1,l,mid,heights);
+        segBuild(2*i+2,mid+1,r,heights);
+        
+        int l_idx = seg[2*i+1];
+        int r_idx = seg[2*i+2];
+
+        if(heights[l_idx]>=heights[r_idx]) {
+            seg[i]=l_idx;
+        } else {
+            seg[i]=r_idx;
+        }
+    }
+
+    int segQuery(int start, int end, int i, int l, int r,vector<int>& heights) {
+        if(r<start||l>end) {
+            return -1;
+        }
+        if(l>=start&&r<=end) {
+            return seg[i];
+        }
+        int mid=l+(r-l)/2;
+        int l_idx = segQuery(start, end, 2*i+1, l, mid,heights);
+        int r_idx = segQuery(start, end, 2*i+2, mid+1, r,heights);
+        if(l_idx==-1) return r_idx;
+        if(r_idx==-1) return l_idx;
+
+        if(heights[l_idx]>=heights[r_idx]) {
+            return l_idx;
+        } else {
+            return r_idx;
+        }
+    }
+
+    vector<int> leftmostBuildingQueries(vector<int>& heights, vector<vector<int>>& queries) {
+        int n=heights.size();
+        seg.resize(4*n);
+        segBuild(0,0,n-1,heights);
+        vector<int>res;
+
+        for(auto &v:queries) {
+
+            int start=min(v[0],v[1]);
+            int end=max(v[0],v[1]);
+            if(start==end) res.push_back(start);
+            else if(heights[end]>heights[start]) res.push_back(end);
+            else if(end==n-1) res.push_back(-1);
+            else {
+                int l=end+1,r=n-1,ans=INT_MAX;
+                while(l<=r) {
+                    int mid=l+(r-l)/2;
+                    int idx = segQuery(l,mid,0,0,n-1,heights);
+                    
+                    if(heights[idx]>max(heights[start],heights[end])) {
+                        ans=min(idx,ans);
+                        r=mid-1;
+                    } else l=mid+1;
+                }
+                if(ans==INT_MAX) res.push_back(-1);
+                else res.push_back(ans);
+            }
+        }
+        
+        return res;
+    }
+};
